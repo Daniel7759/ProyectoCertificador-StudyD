@@ -24,6 +24,9 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
     @Autowired
     private CursoRepository cursoRepository;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public CursoDesbloqueado insert(CursoDesbloqueado cursoDesbloqueado) {
         Curso curso = cursoRepository.findById(cursoDesbloqueado.getCursoId()).orElse(null);
@@ -40,7 +43,15 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
                 // Verificar si el curso anterior está desbloqueado y finalizado para el usuario
                 if (cursoAnterior != null && usuario != null && usuario.getCursosDesbloqueados().stream()
                         .anyMatch(c -> c.getCursoId().equals(cursoAnterior.getCursoId()) && c.getEstadoCurso().equals(EstadoCurso.FINALIZADO))) {
-                    return cursoDesbloqueadoRepository.save(cursoDesbloqueado);
+                    //Obtemos el costo de curso
+                    int costoCurso = curso.getPrice();
+                    //Evaluamos si en usuario tiene suficientes estrellas para desbloquearlo
+                    if (usuario.getStars()>=costoCurso){
+                        userService.subtractStars(cursoDesbloqueado.getUsertId(),costoCurso);
+                        return cursoDesbloqueadoRepository.save(cursoDesbloqueado);
+                    }else {
+                        throw new RuntimeException("El usuario no tiene suficientes estrellas.");
+                    }
                 } else {
                     // Curso anterior no desbloqueado o no finalizado, no se puede desbloquear este curso
                     throw new RuntimeException("No se puede desbloquear el curso actual porque el curso anterior no está desbloqueado o finalizado.");
