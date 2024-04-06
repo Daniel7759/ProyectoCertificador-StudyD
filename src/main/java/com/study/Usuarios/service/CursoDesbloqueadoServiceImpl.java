@@ -7,6 +7,7 @@ import com.study.Usuarios.model.EstadoCurso;
 import com.study.Usuarios.model.User;
 import com.study.Usuarios.repository.CursoDesbloqueadoRepository;
 import com.study.Usuarios.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,15 +28,19 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
     @Autowired
     private UserService userService;
 
+
     @Override
+    @Transactional
     public CursoDesbloqueado insert(CursoDesbloqueado cursoDesbloqueado) {
         Curso curso = cursoRepository.findById(cursoDesbloqueado.getCursoId()).orElse(null);
         User usuario = usuarioRepository.findById(cursoDesbloqueado.getUsertId()).orElse(null);
 
         if (curso != null) {
+            //Obtemos el costo de curso
+            int costoCurso = curso.getPrice();
             // Verificar si el curso tiene un curso anterior
             if (curso.getCursoAnteriorId() == null) {
-                // No hay curso anterior, se puede desbloquear sin restricciones
+                userService.subtractStars(cursoDesbloqueado.getUsertId(),costoCurso);
                 return cursoDesbloqueadoRepository.save(cursoDesbloqueado);
             } else {
                 Curso cursoAnterior = cursoRepository.findById(curso.getCursoAnteriorId()).orElse(null);
@@ -43,8 +48,7 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
                 // Verificar si el curso anterior está desbloqueado y finalizado para el usuario
                 if (cursoAnterior != null && usuario != null && usuario.getCursosDesbloqueados().stream()
                         .anyMatch(c -> c.getCursoId().equals(cursoAnterior.getCursoId()) && c.getEstadoCurso().equals(EstadoCurso.FINALIZADO))) {
-                    //Obtemos el costo de curso
-                    int costoCurso = curso.getPrice();
+
                     //Evaluamos si en usuario tiene suficientes estrellas para desbloquearlo
                     if (usuario.getStars()>=costoCurso){
                         userService.subtractStars(cursoDesbloqueado.getUsertId(),costoCurso);
@@ -54,7 +58,7 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
                     }
                 } else {
                     // Curso anterior no desbloqueado o no finalizado, no se puede desbloquear este curso
-                    throw new RuntimeException("No se puede desbloquear el curso actual porque el curso anterior no está desbloqueado o finalizado.");
+                    throw new RuntimeException("No se puede desbloquear el curso actual porque el curso anterior "+cursoAnterior.getTitle()+" no está finalizado.");
                 }
             }
         } else {
@@ -64,11 +68,19 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
     }
 
     @Override
+    @Transactional
     public CursoDesbloqueado findById(Long cursoUnlockedId) {
         return cursoDesbloqueadoRepository.findById(cursoUnlockedId).orElse(null);
     }
 
     @Override
+    @Transactional
+    public CursoDesbloqueado findByUserIdAndCursoId(Long usertId, Long cursoId) {
+        return cursoDesbloqueadoRepository.findByUsertIdAndCursoId(usertId, cursoId);
+    }
+
+    @Override
+    @Transactional
     public Collection<CursoDesbloqueado> findAll() {
         return cursoDesbloqueadoRepository.findAll();
     }

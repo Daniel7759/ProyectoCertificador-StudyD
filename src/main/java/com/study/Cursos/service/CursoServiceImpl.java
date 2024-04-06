@@ -4,7 +4,6 @@ import com.study.Cursos.model.Curso;
 import com.study.Cursos.model.Materia;
 import com.study.Cursos.repository.CursoRepository;
 import com.study.Cursos.repository.MateriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -12,11 +11,14 @@ import java.util.Collection;
 @Service
 public class CursoServiceImpl implements CursoService{
 
-    @Autowired
-    private CursoRepository cursoRepository;
+    private final CursoRepository cursoRepository;
 
-    @Autowired
-    private MateriaRepository materiaRepository;
+    private final MateriaRepository materiaRepository;
+
+    public CursoServiceImpl(CursoRepository cursoRepository, MateriaRepository materiaRepository) {
+        this.cursoRepository = cursoRepository;
+        this.materiaRepository = materiaRepository;
+    }
 
     @Override
     public Curso insert(Curso curso) {

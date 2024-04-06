@@ -2,10 +2,7 @@ package com.study.Cursos.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -29,7 +26,7 @@ public class Curso {
     @Column(name = "title",length = 30, nullable = false)
     private String title;
 
-    @Column(name = "image_url", nullable = true, columnDefinition = "TEXT")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @NotBlank(message = "La descripcion del curso es obligatoria")
@@ -41,7 +38,7 @@ public class Curso {
     private EnumTagCursos tag;
 
     @NotNull(message = "El precio del curso es obligatorio")
-    @Positive(message = "El precio del curso debe ser mayor que cero")
+    @PositiveOrZero(message = "El precio del curso debe ser positivo o cero")
     private Integer price;
 
     private LocalDate fechaCreacion;
@@ -56,6 +53,12 @@ public class Curso {
     @JoinColumn(name = "materia_id", nullable = false,referencedColumnName = "materiaId")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Materia materia;
+
+    @OneToOne(mappedBy = "curso", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Logro logro;
+
+    @OneToOne(mappedBy = "curso", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Examen examen;
 
     @PrePersist
     public void prePersist() {

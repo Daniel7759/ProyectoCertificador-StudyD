@@ -1,5 +1,6 @@
 package com.study.Usuarios.model;
 
+import com.study.Cursos.DTO.LogroDTO;
 import com.study.Niveles.model.LevelResponseDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,5 +19,6 @@ public class UserResponseDTO {
     private int stars;
     private double experience;
     private LevelResponseDTO level;
-    private List<UserCursoDTO> cursosDesbloqueados;
+    private List<CursoDesbloqueadoDTO> cursosDesbloqueados;
+    private List<LogroDTO> logros;
 }

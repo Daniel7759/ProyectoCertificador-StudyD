@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> {
                     authz.requestMatchers("/users/**").permitAll();
+                    authz.requestMatchers("/levels/**").permitAll();
                     authz.requestMatchers("/cursos/**").permitAll();
                     authz.requestMatchers("/materias/**").permitAll();
                     authz.requestMatchers("/temas/**").permitAll();
@@ -30,6 +31,9 @@ public class SecurityConfig {
                     authz.requestMatchers("/tareas/**").permitAll();
                     authz.requestMatchers("/usercursos/**").permitAll();
                     authz.requestMatchers("/usercursos/userdto/2").permitAll();
+                    authz.requestMatchers("/logros/**").permitAll();
+                    authz.requestMatchers("/preguntas/**").permitAll();
+                    authz.requestMatchers("/examenes/**").permitAll();
                     authz.anyRequest().authenticated();
                 })
 

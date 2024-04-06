@@ -33,4 +33,5 @@ public class Pregunta {
     @JoinColumn(name = "tarea_id", nullable = false, referencedColumnName = "tareaId")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Tarea tarea;
+
 }

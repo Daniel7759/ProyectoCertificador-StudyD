@@ -1,5 +1,6 @@
 package com.study.Usuarios.controller;
 
+import com.study.Cursos.model.Curso;
 import com.study.Usuarios.model.User;
 import com.study.Usuarios.model.UserResponseDTO;
 import com.study.Usuarios.service.UserService;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "users")
@@ -23,7 +25,6 @@ public class UserController {
             Collection<User> userssDB = userService.findAll();
             return new ResponseEntity<>(userssDB, HttpStatus.OK);
         }catch (Exception e){
-            System.out.println(e.toString());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -96,6 +97,31 @@ public class UserController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al autenticar usuario: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/datacursos/{userId}")
+    public ResponseEntity<?> getCursosDesbloqueadosDelUsuario(@PathVariable Long userId){
+        try {
+            List<Curso> userCursos = userService.bucarCursosConDatos(userId);
+            return new ResponseEntity<>(userCursos, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e,HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> actualizarDatosUsuario(@PathVariable Long userId, @RequestParam String passwordActual,@RequestBody User user){
+        try {
+            User existingUserDB = userService.findById(userId);
+            if (existingUserDB!=null){
+                userService.update(user,passwordActual);
+                return new ResponseEntity<>("Usuario Actualizado Correctamente", HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>("El usuario no exite",HttpStatus.NOT_FOUND);
+            }
+        }catch (RuntimeException e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
 }

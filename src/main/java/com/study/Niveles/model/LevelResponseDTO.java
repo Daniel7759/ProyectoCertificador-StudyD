@@ -9,4 +9,5 @@ public class LevelResponseDTO {
     private Long levelId;
     private String name;
     private String imageUrl;
+    private double xpToNextLevel;
 }

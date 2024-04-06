@@ -1,11 +1,14 @@
 package com.study.Usuarios.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.study.Cursos.model.Logro;
 import com.study.Niveles.model.Level;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -45,18 +48,24 @@ public class User {
     private String username;
 
     @Pattern(regexp="^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{10,}$")
-    @Column(length = 10, nullable = false)
+    @Column(length = 200, nullable = false)
     private String password;
 
     @Pattern(regexp="^[0-9]{9}$")
     @Column(length = 9, nullable = false)
     private String phone;
+
+    @PositiveOrZero(message = "Experience no puede ser negativo")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int stars = 0;
+
+    @PositiveOrZero(message = "Experience no puede ser negativo")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private double experience = 0;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "level",referencedColumnName = "levelId")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonIgnore
     private Level level;
 
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = Role.class, cascade = CascadeType.PERSIST)
@@ -65,5 +74,9 @@ public class User {
 
     @OneToMany(mappedBy = "usertId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CursoDesbloqueado> cursosDesbloqueados = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "user_logro", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "logro_id"))
+    private Set<Logro> logros = new HashSet<>();
 
 }

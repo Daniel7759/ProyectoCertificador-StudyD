@@ -1,9 +1,10 @@
 package com.study.Cursos.controller;
 
 import com.study.Cursos.model.Curso;
-import com.study.Cursos.model.Materia;
 import com.study.Cursos.service.CursoService;
 import com.study.Cursos.service.MateriaService;
+import com.study.firebase.FirebaseMessagingService;
+import com.study.firebase.NotificationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,9 @@ public class CursoController {
 
     @Autowired
     private MateriaService materiaService;
+
+    @Autowired
+    private FirebaseMessagingService firebaseMessagingService;
 
     @GetMapping
     public ResponseEntity<?> getAllCursos(@RequestParam(required = false) String tag){
@@ -60,6 +64,14 @@ public class CursoController {
                 return new ResponseEntity<>(existingCurso, HttpStatus.OK);
             }
             Curso cursoDB=cursoService.insert(curso);
+
+            //mandamos la notificacion a la app
+            String titulo = "Nuevo Curso, miralo en Novedades";
+            String cuerpo = "¡Nuevo curso disponible: " + cursoDB.getTitle() + "!";
+            String image = "https://i.pinimg.com/236x/ac/15/a6/ac15a619b4ff84341dab0c1b93b6556b.jpg";
+            NotificationMessage notificationMessage = new NotificationMessage(titulo,cuerpo,image);
+            firebaseMessagingService.sendNotifyByTopic(notificationMessage);
+
             return new ResponseEntity<>(cursoDB,HttpStatus.CREATED);
         }catch (Exception e){
             return new ResponseEntity<>(e,HttpStatus.BAD_REQUEST);

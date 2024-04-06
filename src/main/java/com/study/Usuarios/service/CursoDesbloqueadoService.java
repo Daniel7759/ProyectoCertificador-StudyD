@@ -10,5 +10,7 @@ public interface CursoDesbloqueadoService {
 
     public abstract CursoDesbloqueado findById(Long cursoUnlockedId);
 
+    public abstract CursoDesbloqueado findByUserIdAndCursoId(Long usertId, Long cursoId);
+
     public abstract Collection<CursoDesbloqueado> findAll();
 }
