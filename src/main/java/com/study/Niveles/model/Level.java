@@ -1,7 +1,5 @@
 package com.study.Niveles.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.study.Usuarios.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

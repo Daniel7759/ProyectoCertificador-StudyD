@@ -6,7 +6,7 @@ import com.study.Usuarios.model.CursoDesbloqueado;
 import com.study.Usuarios.model.User;
 import com.study.Usuarios.service.CursoDesbloqueadoService;
 import com.study.Usuarios.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.websocket.server.PathParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +17,17 @@ import java.util.Collection;
 @RequestMapping(value = "usercursos")
 public class UserCursoController {
 
-    @Autowired
-    private CursoDesbloqueadoService cursoDesbloqueadoService;
+    private final CursoDesbloqueadoService cursoDesbloqueadoService;
 
-    @Autowired
-    private CursoService cursoService;
+    private final CursoService cursoService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserCursoController(CursoDesbloqueadoService cursoDesbloqueadoService, CursoService cursoService, UserService userService) {
+        this.cursoDesbloqueadoService = cursoDesbloqueadoService;
+        this.cursoService = cursoService;
+        this.userService = userService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllUsersCursos(){
@@ -67,6 +70,23 @@ public class UserCursoController {
             // Enviar un mensaje de éxito
             String mensaje = "El curso" + cursoDesbloqueado.getCursoId() + " ha sido desbloqueado exitosamente";
             return new ResponseEntity<>(mensaje, HttpStatus.CREATED);
+        }catch (RuntimeException e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/{cursoUnlockedId}")
+    public ResponseEntity<?> updateUserCurso(@PathVariable Long cursoUnlockedId, @PathParam("notaExamen") Double notaExamen){
+        try {
+            CursoDesbloqueado cursoDesbloqueadoDB = cursoDesbloqueadoService.findById(cursoUnlockedId);
+            if (cursoDesbloqueadoDB == null) {
+                return new ResponseEntity<>("El curso desbloqueado con ID " + cursoUnlockedId + " no existe", HttpStatus.NOT_FOUND);
+            }
+            if (notaExamen < 0) {
+                return new ResponseEntity<>("La nota del examen no puede ser menor a cero", HttpStatus.BAD_REQUEST);
+            }
+            cursoDesbloqueadoService.update(cursoUnlockedId, notaExamen);
+            return new ResponseEntity<>(cursoDesbloqueadoDB, HttpStatus.OK);
         }catch (RuntimeException e){
             return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }

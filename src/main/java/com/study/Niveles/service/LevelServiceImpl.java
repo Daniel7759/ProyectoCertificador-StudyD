@@ -3,7 +3,6 @@ package com.study.Niveles.service;
 import com.study.Niveles.model.Level;
 import com.study.Niveles.repository.LevelRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -11,8 +10,12 @@ import java.util.Collection;
 @Service
 public class LevelServiceImpl implements LevelService{
 
-    @Autowired
-    private LevelRepository levelRepository;
+    private final LevelRepository levelRepository;
+
+    public LevelServiceImpl(LevelRepository levelRepository) {
+        this.levelRepository = levelRepository;
+    }
+
     @Override
     @Transactional
     public Level insert(Level level) {

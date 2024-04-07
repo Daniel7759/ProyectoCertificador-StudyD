@@ -11,7 +11,7 @@ import java.util.Collection;
 @Repository
 public interface MateriaRepository extends JpaRepository<Materia, Long> {
 
-    public abstract Materia findByName(String name);
+    Materia findByName(String name);
 
-    public abstract Collection<Materia> findByType(EnumMateria type);
+    Collection<Materia> findByType(EnumMateria type);
 }

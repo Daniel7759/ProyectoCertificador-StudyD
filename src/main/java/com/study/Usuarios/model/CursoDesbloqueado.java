@@ -29,14 +29,14 @@ public class CursoDesbloqueado {
     @Column(name = "fecha_desbloqueo")
     private LocalDate fechaDesbloqueo;
 
-    @Column(name = "promedio_tareas")
-    private Double promedioTareas = 0.0;
-
     @Column(name = "nota_examen")
     private Double notaExamen = 0.0;
 
     @Column(name = "tiempo_completado")
     private Duration tiempoCompletado = Duration.ZERO;
+
+    @Column(name = "fecha_finalizado")
+    private LocalDate fechaFinalizado;
 
     @Column(name = "estado_curso")
     @Enumerated(EnumType.STRING)

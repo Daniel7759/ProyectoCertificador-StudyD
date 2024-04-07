@@ -6,10 +6,10 @@ import java.util.Collection;
 
 public interface LevelService {
 
-    public abstract Level insert(Level level);
-    public abstract Level update(Level level);
-    public abstract void delete(Long levelId);
-    public abstract Level findById(Long levelId);
-    public abstract Level findByName(String name);
-    public abstract Collection<Level> findAll();
+    Level insert(Level level);
+    Level update(Level level);
+    void delete(Long levelId);
+    Level findById(Long levelId);
+    Level findByName(String name);
+    Collection<Level> findAll();
 }

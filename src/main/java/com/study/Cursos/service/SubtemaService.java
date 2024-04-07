@@ -6,8 +6,8 @@ import java.util.Collection;
 
 public interface SubtemaService {
 
-    public abstract Subtema insert(Subtema subtema);
-    public abstract Subtema findByTitulo(String titulo);
-    public abstract Subtema findById(Long subtemaId);
-    public abstract Collection<Subtema> findAll();
+    Subtema insert(Subtema subtema);
+    Subtema findByTitulo(String titulo);
+    Subtema findById(Long subtemaId);
+    Collection<Subtema> findAll();
 }

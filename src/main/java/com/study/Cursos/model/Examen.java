@@ -26,6 +26,9 @@ public class Examen {
     @Transient
     private List<Pregunta> preguntas = new ArrayList<>();
 
+    @Transient
+    private double puntajePregunta;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curso_id", nullable = false, referencedColumnName = "cursoId")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

@@ -6,11 +6,13 @@ import java.util.Collection;
 
 public interface CursoDesbloqueadoService {
 
-    public abstract CursoDesbloqueado insert(CursoDesbloqueado cursoDesbloqueado);
+    CursoDesbloqueado insert(CursoDesbloqueado cursoDesbloqueado);
 
-    public abstract CursoDesbloqueado findById(Long cursoUnlockedId);
+    CursoDesbloqueado update(Long cursoUnlockedId, Double notaExamen);
 
-    public abstract CursoDesbloqueado findByUserIdAndCursoId(Long usertId, Long cursoId);
+    CursoDesbloqueado findById(Long cursoUnlockedId);
 
-    public abstract Collection<CursoDesbloqueado> findAll();
+    CursoDesbloqueado findByUserIdAndCursoId(Long usertId, Long cursoId);
+
+    Collection<CursoDesbloqueado> findAll();
 }

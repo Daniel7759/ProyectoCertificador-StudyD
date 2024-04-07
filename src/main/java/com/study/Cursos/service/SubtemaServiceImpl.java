@@ -4,7 +4,6 @@ import com.study.Cursos.model.Subtema;
 import com.study.Cursos.model.Tema;
 import com.study.Cursos.repository.SubtemaRepository;
 import com.study.Cursos.repository.TemaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -12,11 +11,14 @@ import java.util.Collection;
 @Service
 public class SubtemaServiceImpl implements SubtemaService{
 
-    @Autowired
-    private SubtemaRepository subtemaRepository;
+    private final SubtemaRepository subtemaRepository;
 
-    @Autowired
-    private TemaRepository temaRepository;
+    private final TemaRepository temaRepository;
+
+    public SubtemaServiceImpl(SubtemaRepository subtemaRepository, TemaRepository temaRepository) {
+        this.subtemaRepository = subtemaRepository;
+        this.temaRepository = temaRepository;
+    }
 
     @Override
     public Subtema insert(Subtema subtema) {

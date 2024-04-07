@@ -8,10 +8,10 @@ import java.util.Collection;
 
 public interface MateriaService {
 
-    public abstract Materia insert(Materia materia);
-    public abstract Materia findByName(String name);
-    public abstract Materia findById(Long materiaId);
-    public abstract Collection<Materia> findAll();
-    public abstract Collection<Materia> findAllByType(EnumMateria type);
-    public abstract Collection<Curso> obtenerCursosDeMateriasOpcionales();
+    Materia insert(Materia materia);
+    Materia findByName(String name);
+    Materia findById(Long materiaId);
+    Collection<Materia> findAll();
+    Collection<Materia> findAllByType(EnumMateria type);
+    Collection<Curso> obtenerCursosDeMateriasOpcionales();
 }

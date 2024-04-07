@@ -1,9 +1,7 @@
 package com.study.Cursos.controller;
 
 import com.study.Cursos.model.Examen;
-import com.study.Cursos.model.Logro;
 import com.study.Cursos.service.ExamenService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "examenes")
 public class ExamenController {
 
-    @Autowired
-    private ExamenService examenService;
+    private final ExamenService examenService;
+
+    public ExamenController(ExamenService examenService) {
+        this.examenService = examenService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllExamenes(){

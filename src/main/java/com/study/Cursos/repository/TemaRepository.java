@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TemaRepository extends JpaRepository<Tema,Long> {
 
-    public abstract Tema findByTitle(String title);
+    Tema findByTitle(String title);
 }

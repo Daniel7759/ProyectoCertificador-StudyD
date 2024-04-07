@@ -1,9 +1,7 @@
 package com.study.Cursos.controller;
 
-import com.study.Cursos.model.Curso;
 import com.study.Cursos.model.Tema;
 import com.study.Cursos.service.TemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "temas")
 public class TemaController {
 
-    @Autowired
-    private TemaService temaService;
+    private final TemaService temaService;
+
+    public TemaController(TemaService temaService) {
+        this.temaService = temaService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllTemas(){

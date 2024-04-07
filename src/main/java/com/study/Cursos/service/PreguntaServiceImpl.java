@@ -1,11 +1,9 @@
 package com.study.Cursos.service;
 
-import com.study.Cursos.model.Materia;
 import com.study.Cursos.model.Pregunta;
 import com.study.Cursos.model.Tarea;
 import com.study.Cursos.repository.PreguntaRepository;
 import com.study.Cursos.repository.TareaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -13,11 +11,14 @@ import java.util.Collection;
 @Service
 public class PreguntaServiceImpl implements PreguntaService{
 
-    @Autowired
-    private PreguntaRepository preguntaRepository;
+    private final PreguntaRepository preguntaRepository;
 
-    @Autowired
-    private TareaRepository tareaRepository;
+    private final TareaRepository tareaRepository;
+
+    public PreguntaServiceImpl(PreguntaRepository preguntaRepository, TareaRepository tareaRepository) {
+        this.preguntaRepository = preguntaRepository;
+        this.tareaRepository = tareaRepository;
+    }
 
     @Override
     public Pregunta insert(Pregunta pregunta) {

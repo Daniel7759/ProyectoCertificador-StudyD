@@ -1,25 +1,23 @@
 package com.study.Cursos.controller;
 
-import com.study.Cursos.model.Curso;
 import com.study.Cursos.model.EnumMateria;
 import com.study.Cursos.model.Materia;
-import com.study.Cursos.service.CursoService;
 import com.study.Cursos.service.MateriaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.Set;
 
 @RestController
 @RequestMapping(value = "materias")
 public class MateriaController {
 
-    @Autowired
-    private MateriaService materiaService;
+    private final MateriaService materiaService;
+
+    public MateriaController(MateriaService materiaService) {
+        this.materiaService = materiaService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllMaterias(){

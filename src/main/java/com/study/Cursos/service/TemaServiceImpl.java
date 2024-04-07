@@ -1,11 +1,9 @@
 package com.study.Cursos.service;
 
 import com.study.Cursos.model.Curso;
-import com.study.Cursos.model.Materia;
 import com.study.Cursos.model.Tema;
 import com.study.Cursos.repository.CursoRepository;
 import com.study.Cursos.repository.TemaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -13,11 +11,14 @@ import java.util.Collection;
 @Service
 public class TemaServiceImpl implements TemaService{
 
-    @Autowired
-    private TemaRepository temaRepository;
+    private final TemaRepository temaRepository;
 
-    @Autowired
-    private CursoRepository cursoRepository;
+    private final CursoRepository cursoRepository;
+
+    public TemaServiceImpl(TemaRepository temaRepository, CursoRepository cursoRepository) {
+        this.temaRepository = temaRepository;
+        this.cursoRepository = cursoRepository;
+    }
 
     @Override
     public Tema insert(Tema tema) {

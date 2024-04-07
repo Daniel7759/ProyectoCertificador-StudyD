@@ -2,7 +2,6 @@ package com.study.Niveles.controller;
 
 import com.study.Niveles.model.Level;
 import com.study.Niveles.service.LevelService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "levels")
 public class LevelController {
 
-    @Autowired
-    private LevelService levelService;
+    private final LevelService levelService;
+
+    public LevelController(LevelService levelService) {
+        this.levelService = levelService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAll(){
@@ -22,7 +24,6 @@ public class LevelController {
             Collection<Level> levelsDB = levelService.findAll();
             return new ResponseEntity<>(levelsDB, HttpStatus.OK);
         }catch (Exception e){
-            System.out.println(e.toString());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -33,7 +34,6 @@ public class LevelController {
             Level levelDB= levelService.findById(levelId);
             return new ResponseEntity<>(levelDB, HttpStatus.OK);
         }catch (Exception e){
-            System.out.println(e);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -49,7 +49,6 @@ public class LevelController {
             Level levelDB = levelService.insert(level);
             return new ResponseEntity<>(levelDB, HttpStatus.CREATED);
         }catch (Exception e){
-            System.out.println(e);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }

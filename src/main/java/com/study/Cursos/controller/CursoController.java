@@ -5,7 +5,6 @@ import com.study.Cursos.service.CursoService;
 import com.study.Cursos.service.MateriaService;
 import com.study.firebase.FirebaseMessagingService;
 import com.study.firebase.NotificationMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +16,17 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "cursos")
 public class CursoController {
 
-    @Autowired
-    private CursoService cursoService;
+    private final CursoService cursoService;
 
-    @Autowired
-    private MateriaService materiaService;
+    private final MateriaService materiaService;
 
-    @Autowired
-    private FirebaseMessagingService firebaseMessagingService;
+    private final FirebaseMessagingService firebaseMessagingService;
+
+    public CursoController(CursoService cursoService, MateriaService materiaService, FirebaseMessagingService firebaseMessagingService) {
+        this.cursoService = cursoService;
+        this.materiaService = materiaService;
+        this.firebaseMessagingService = firebaseMessagingService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllCursos(@RequestParam(required = false) String tag){

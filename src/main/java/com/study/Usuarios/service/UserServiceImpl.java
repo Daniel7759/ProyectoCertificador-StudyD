@@ -4,7 +4,6 @@ import com.study.Cursos.DTO.LogroDTO;
 import com.study.Cursos.model.Curso;
 import com.study.Cursos.model.Logro;
 import com.study.Cursos.service.CursoService;
-import com.study.Cursos.service.LogroService;
 import com.study.Niveles.model.Level;
 import com.study.Niveles.model.LevelResponseDTO;
 import com.study.Niveles.repository.LevelRepository;
@@ -12,97 +11,59 @@ import com.study.Usuarios.model.*;
 import com.study.Usuarios.repository.CursoDesbloqueadoRepository;
 import com.study.Usuarios.repository.RoleRepository;
 import com.study.Usuarios.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService{
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private LevelRepository levelRepository;
+    private final LevelRepository levelRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private CursoDesbloqueadoRepository cursoDesbloqueadoRepository;
+    private final CursoDesbloqueadoRepository cursoDesbloqueadoRepository;
 
-    @Autowired
-    private LogroService logroService;
+    private final CursoService cursoService;
 
-    @Autowired
-    private CursoService cursoService;
+    public UserServiceImpl(UserRepository userRepository, LevelRepository levelRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, CursoDesbloqueadoRepository cursoDesbloqueadoRepository, CursoService cursoService) {
+        this.userRepository = userRepository;
+        this.levelRepository = levelRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.cursoDesbloqueadoRepository = cursoDesbloqueadoRepository;
+        this.cursoService = cursoService;
+    }
 
     @Override
     public User insert(User user) {
-        // Codificar la contraseña antes de guardarla en la base de datos
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        encodePassword(user);
 
-        Long levelId=1L;
-        Level level=levelRepository.findById(levelId).orElse(null);
+        Level level = getInitialLevel();
 
-        if (level!=null){
-            level.getUsers().add(user);
-            user.setLevel(level);
+        level.getUsers().add(user);
+        user.setLevel(level);
 
-            if (user.getRoles() == null || user.getRoles().isEmpty()) {
-                // Si no tiene ningún rol asignado, asignar el rol de usuario (USER)
-                Role userRole = roleRepository.findByNombreRol(EnumRoles.USER);
-                if (userRole == null) {
-                    // Si el rol no existe, crearlo y guardarlo en la base de datos
-                    userRole = Role.builder().nombreRol(EnumRoles.USER).build();
-                    roleRepository.save(userRole);
-                }
-                user.setRoles(Collections.singleton(userRole)); // Asignar el rol al usuario
-            }
-            return userRepository.save(user);
-        }else {
-            return null;
-        }
+        assignUserRole(user);
+
+        return userRepository.save(user);
     }
 
     @Override
     public User update(User user, String passwordActual) {
-        // Obtener el usuario existente de la base de datos
-        User existingUser = userRepository.findById(user.getUsertId()).orElse(null);
-        if (existingUser != null && passwordEncoder.matches(passwordActual, existingUser.getPassword())) {
-            // Actualizar los campos permitidos
-            existingUser.setFirstname(user.getFirstname());
-            existingUser.setLastname(user.getLastname());
-
-            User emailValido= userRepository.findByEmail(user.getEmail());
-            User usernameValido= userRepository.findByUsername(user.getUsername());
-            if (emailValido==null){
-                existingUser.setEmail(user.getEmail());
-            }else{
-                throw new RuntimeException("Este email ya esta en uso");
-            }
-            if (usernameValido==null){
-                existingUser.setUsername(user.getUsername());
-            }else {
-                throw new RuntimeException("Este nombre de usuario ya existe");
-            }
-
-            // Verificar si se proporcionó una nueva contraseña y codificarla
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
-
-            existingUser.setPhone(user.getPhone());
-            // Guardar los cambios
+        User existingUser = userRepository.findById(user.getUsertId())
+                .orElseThrow(() -> new RuntimeException("El usuario especificado no existe."));
+        if (passwordEncoder.matches(passwordActual, existingUser.getPassword())) {
+            updateUserFields(user, existingUser);
             return userRepository.save(existingUser);
         } else {
-            // El usuario no existe, puedes lanzar una excepción o devolver null según tu lógica de negocio
-            throw  new RuntimeException("la contraseña actual no coincide");
+            throw new RuntimeException("La contraseña actual no coincide");
         }
     }
 
@@ -119,45 +80,34 @@ public class UserServiceImpl implements UserService{
     @Override
     public User authenticate(String email, String password) {
         User userDB = userRepository.findByEmail(email);
-        if (userDB != null && passwordEncoder.matches(password, userDB.getPassword())){
-            return userDB;
+        if (userDB == null) {
+            throw new RuntimeException("El usuario especificado no existe.");
         }
-        return null;
+        if (!passwordEncoder.matches(password, userDB.getPassword())) {
+            throw new RuntimeException("La contraseña proporcionada no coincide.");
+        }
+        return userDB;
     }
 
     @Override
     public User updateStarsAndExperience(Long userId, int estrellas, double experiencia) {
-        User usuario = userRepository.findById(userId).orElse(null);
-        if (usuario != null) {
-            // Si se están restando estrellas, asegúrate de que el resultado no sea negativo
-            if (estrellas < 0 && usuario.getStars() < -estrellas) {
-                estrellas = -usuario.getStars(); // Resta solo hasta cero
-            }
-            if (experiencia < 0) {
-                experiencia = 0;
-            }
-            int nuevasEstrellas = usuario.getStars() + estrellas;
-            double nuevaExperiencia = usuario.getExperience() + experiencia;
+        User usuario = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("El usuario especificado no existe."));
 
-            // Verificar si existe un nivel superior al actual
-            Level levelActual = usuario.getLevel();
-            Level levelSiguiente = levelRepository.findById(levelActual.getLevelId() + 1).orElse(null);
+        updateStars(usuario, estrellas);
+        updateExperience(usuario, experiencia);
+        updateLevel(usuario);
 
-            if (levelSiguiente != null && nuevaExperiencia >= levelSiguiente.getXpNeeded()) {
-                // Si hay un nivel superior y la nueva experiencia es suficiente, actualizar el nivel
-                usuario.setLevel(levelSiguiente);
-            }
-
-            usuario.setStars(nuevasEstrellas);
-            usuario.setExperience(nuevaExperiencia);
-            userRepository.save(usuario);
-        }
+        userRepository.save(usuario);
         return usuario;
     }
 
     @Override
     public User subtractStars(Long userId, int estrellas) {
-        return updateStarsAndExperience(userId,-estrellas,0);
+        if (estrellas < 0) {
+            throw new IllegalArgumentException("El número de estrellas a restar debe ser positivo");
+        }
+        return updateStarsAndExperience(userId, -estrellas, 0);
     }
 
     @Override
@@ -167,84 +117,39 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserResponseDTO findAllUserWithLevel(Long userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            Level level = levelRepository.findById(user.getLevel().getLevelId()).orElse(null);
-            UserResponseDTO userResponseDTO = new UserResponseDTO();
-            userResponseDTO.setUserId(user.getUsertId());
-            userResponseDTO.setFirstname(user.getFirstname());
-            userResponseDTO.setLastname(user.getLastname());
-            userResponseDTO.setEmail(user.getEmail());
-            userResponseDTO.setUsername(user.getUsername());
-            userResponseDTO.setPhone(user.getPhone());
-            userResponseDTO.setStars(user.getStars());
-            userResponseDTO.setExperience(user.getExperience());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("El usuario especificado no existe."));
 
+        Level level = levelRepository.findById(user.getLevel().getLevelId())
+                .orElseThrow(() -> new RuntimeException("El nivel especificado no existe."));
 
-            // Mapeo del objeto Level
-            if (level != null) {
-                LevelResponseDTO levelResponseDTO = new LevelResponseDTO();
-                levelResponseDTO.setLevelId(level.getLevelId());
-                levelResponseDTO.setName(level.getName());
-                levelResponseDTO.setImageUrl(level.getImageUrl());
+        UserResponseDTO userResponseDTO = mapUserToUserResponseDTO(user, level);
 
-                Level levelSiguiente = levelRepository.findById(level.getLevelId() + 1).orElse(null);
-                if (levelSiguiente!=null){
-                    levelResponseDTO.setXpToNextLevel(levelSiguiente.getXpNeeded());
-                }
-
-                userResponseDTO.setLevel(levelResponseDTO);
-            }
-
-            List<CursoDesbloqueado> cursosDesbloqueados = cursoDesbloqueadoRepository.findByUsertId(userId);
-            if (cursosDesbloqueados != null && !cursosDesbloqueados.isEmpty()) {
-                List<CursoDesbloqueadoDTO> cursosDesbloqueadosDTO = new ArrayList<>();
-                for (CursoDesbloqueado cursoDesbloqueado : cursosDesbloqueados) {
-                    CursoDesbloqueadoDTO cursoDesbloqueadoDTO = getCursoDesbloqueadoDTO(cursoDesbloqueado);
-                    cursosDesbloqueadosDTO.add(cursoDesbloqueadoDTO);
-                }
-                userResponseDTO.setCursosDesbloqueados(cursosDesbloqueadosDTO);
-            }
-
-            // Mapeo de los logros del usuario
-            Set<Logro> logros = user.getLogros();
-            if (logros != null && !logros.isEmpty()) {
-                List<LogroDTO> logrosDTO = new ArrayList<>();
-                for (Logro logro : logros) {
-                    LogroDTO logroDTO = new LogroDTO();
-                    logroDTO.setLogroId(logro.getLogroId());
-                    logroDTO.setNombreLogro(logro.getNombreLogro());
-                    logroDTO.setImagenLogro(logro.getImagenLogro());
-                    logrosDTO.add(logroDTO);
-                }
-                userResponseDTO.setLogros(logrosDTO);
-            }
-
-            return userResponseDTO;
+        List<CursoDesbloqueado> cursosDesbloqueados = cursoDesbloqueadoRepository.findByUsertId(userId);
+        if (!cursosDesbloqueados.isEmpty()) {
+            List<CursoDesbloqueadoDTO> cursosDesbloqueadosDTO = cursosDesbloqueados.stream()
+                    .map(this::getCursoDesbloqueadoDTO)
+                    .collect(Collectors.toList());
+            userResponseDTO.setCursosDesbloqueados(cursosDesbloqueadosDTO);
         }
-        return null;
-    }
 
-    private static CursoDesbloqueadoDTO getCursoDesbloqueadoDTO(CursoDesbloqueado cursoDesbloqueado) {
-        CursoDesbloqueadoDTO cursoDesbloqueadoDTO = new CursoDesbloqueadoDTO();
-        cursoDesbloqueadoDTO.setCursoUnlockedId(cursoDesbloqueado.getCursoUnlockedId());
-        cursoDesbloqueadoDTO.setUsertId(cursoDesbloqueado.getUsertId());
-        cursoDesbloqueadoDTO.setCursoId(cursoDesbloqueado.getCursoId());
-        cursoDesbloqueadoDTO.setFechaDesbloqueo(cursoDesbloqueado.getFechaDesbloqueo());
-        cursoDesbloqueadoDTO.setPromedioTareas(cursoDesbloqueado.getPromedioTareas());
-        cursoDesbloqueadoDTO.setNotaExamen(cursoDesbloqueado.getNotaExamen());
-        cursoDesbloqueadoDTO.setTiempoCompletado(cursoDesbloqueado.getTiempoCompletado());
-        cursoDesbloqueadoDTO.setEstadoCurso(cursoDesbloqueado.getEstadoCurso());
-        return cursoDesbloqueadoDTO;
+        Set<Logro> logros = user.getLogros();
+        if (!logros.isEmpty()) {
+            List<LogroDTO> logrosDTO = logros.stream()
+                    .map(this::getLogroDTO)
+                    .collect(Collectors.toList());
+            userResponseDTO.setLogros(logrosDTO);
+        }
+
+        return userResponseDTO;
     }
 
     @Override
     public List<Curso> bucarCursosConDatos(Long userId) {
-        List<Curso> cursosDesbloqueadosDatos = new ArrayList<>();
 
+        List<Curso> cursosDesbloqueadosDatos = new ArrayList<>();
         // Obtener el usuario
         User user = userRepository.findById(userId).orElse(null);
-
         if (user != null) {
             // Recorrer la lista de cursos desbloqueados del usuario
             for (CursoDesbloqueado cursoDesbloqueado : user.getCursosDesbloqueados()) {
@@ -256,5 +161,130 @@ public class UserServiceImpl implements UserService{
             }
         }
         return cursosDesbloqueadosDatos;
+    }
+
+    private UserResponseDTO mapUserToUserResponseDTO(User user, Level level) {
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setUserId(user.getUsertId());
+        userResponseDTO.setFirstname(user.getFirstname());
+        userResponseDTO.setLastname(user.getLastname());
+        userResponseDTO.setEmail(user.getEmail());
+        userResponseDTO.setUsername(user.getUsername());
+        userResponseDTO.setPhone(user.getPhone());
+        userResponseDTO.setStars(user.getStars());
+        userResponseDTO.setExperience(user.getExperience());
+
+        LevelResponseDTO levelResponseDTO = new LevelResponseDTO();
+        levelResponseDTO.setLevelId(level.getLevelId());
+        levelResponseDTO.setName(level.getName());
+        levelResponseDTO.setImageUrl(level.getImageUrl());
+
+        levelRepository.findById(level.getLevelId() + 1)
+                .ifPresent(nextLevel -> levelResponseDTO.setXpToNextLevel(nextLevel.getXpNeeded()));
+
+        userResponseDTO.setLevel(levelResponseDTO);
+
+        return userResponseDTO;
+    }
+
+    private LogroDTO getLogroDTO(Logro logro) {
+        LogroDTO logroDTO = new LogroDTO();
+        logroDTO.setLogroId(logro.getLogroId());
+        logroDTO.setNombreLogro(logro.getNombreLogro());
+        logroDTO.setImagenLogro(logro.getImagenLogro());
+        return logroDTO;
+    }
+
+    //Metodo para obtener un objeto CursoDesbloqueadoDTO a partir de un objeto CursoDesbloqueado
+    private CursoDesbloqueadoDTO getCursoDesbloqueadoDTO(CursoDesbloqueado cursoDesbloqueado) {
+        CursoDesbloqueadoDTO cursoDesbloqueadoDTO = new CursoDesbloqueadoDTO();
+        cursoDesbloqueadoDTO.setCursoUnlockedId(cursoDesbloqueado.getCursoUnlockedId());
+        cursoDesbloqueadoDTO.setUsertId(cursoDesbloqueado.getUsertId());
+        cursoDesbloqueadoDTO.setCursoId(cursoDesbloqueado.getCursoId());
+        cursoDesbloqueadoDTO.setFechaDesbloqueo(cursoDesbloqueado.getFechaDesbloqueo());
+        cursoDesbloqueadoDTO.setFechaDesbloqueo(cursoDesbloqueado.getFechaFinalizado());
+        cursoDesbloqueadoDTO.setNotaExamen(cursoDesbloqueado.getNotaExamen());
+        cursoDesbloqueadoDTO.setTiempoCompletado(cursoDesbloqueado.getTiempoCompletado());
+        cursoDesbloqueadoDTO.setEstadoCurso(cursoDesbloqueado.getEstadoCurso());
+        return cursoDesbloqueadoDTO;
+    }
+
+    private void encodePassword(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    }
+
+    private Level getInitialLevel() {
+        return levelRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("El nivel inicial no existe."));
+    }
+
+    private void assignUserRole(User user) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Role userRole = roleRepository.findByNombreRol(EnumRoles.USER);
+            if (userRole == null) {
+                userRole = Role.builder().nombreRol(EnumRoles.USER).build();
+                roleRepository.save(userRole);
+            }
+            user.setRoles(Collections.singleton(userRole));
+        }
+    }
+
+    private void updateUserFields(User user, User existingUser) {
+        existingUser.setFirstname(user.getFirstname());
+        existingUser.setLastname(user.getLastname());
+        validateAndSetEmail(user, existingUser);
+        validateAndSetUsername(user, existingUser);
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        existingUser.setPhone(user.getPhone());
+    }
+
+    private void validateAndSetEmail(User user, User existingUser) {
+        User emailValido = userRepository.findByEmail(user.getEmail());
+        if (emailValido == null) {
+            existingUser.setEmail(user.getEmail());
+        } else {
+            throw new RuntimeException("Este email ya está en uso");
+        }
+    }
+
+    //Metodo para validar y establecer el nombre de usuario
+    private void validateAndSetUsername(User user, User existingUser) {
+        User usernameValido = userRepository.findByUsername(user.getUsername());
+        if (usernameValido == null) {
+            existingUser.setUsername(user.getUsername());
+        } else {
+            throw new RuntimeException("Este nombre de usuario ya existe");
+        }
+    }
+
+    //Metodos para actualizar las estrellas del usuario
+    private void updateStars(User usuario, int estrellas) {
+        // Si se están restando estrellas, asegúrate de que el resultado no sea negativo
+        if (estrellas < 0 && usuario.getStars() < -estrellas) {
+            estrellas = -usuario.getStars(); // Resta solo hasta cero
+        }
+        usuario.setStars(usuario.getStars() + estrellas);
+    }
+
+    //Metodos para actualizar la experiencia del usuario
+    private void updateExperience(User usuario, double experiencia) {
+        if (experiencia < 0) {
+            experiencia = 0;
+        }
+        usuario.setExperience(usuario.getExperience() + experiencia);
+    }
+
+    //Metodos para actualizar el nivel del usuario
+    private void updateLevel(User usuario) {
+        // Verificar si existe un nivel superior al actual
+        Level levelActual = usuario.getLevel();
+        Level levelSiguiente = levelRepository.findById(levelActual.getLevelId() + 1).orElse(null);
+
+        if (levelSiguiente != null && usuario.getExperience() >= levelSiguiente.getXpNeeded()) {
+            // Si hay un nivel superior y la nueva experiencia es suficiente, actualizar el nivel
+            usuario.setLevel(levelSiguiente);
+        }
     }
 }

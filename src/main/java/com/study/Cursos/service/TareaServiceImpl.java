@@ -2,7 +2,6 @@ package com.study.Cursos.service;
 
 import com.study.Cursos.model.Tarea;
 import com.study.Cursos.repository.TareaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -10,8 +9,11 @@ import java.util.Collection;
 @Service
 public class TareaServiceImpl implements TareaService{
 
-    @Autowired
-    private TareaRepository tareaRepository;
+    private final TareaRepository tareaRepository;
+
+    public TareaServiceImpl(TareaRepository tareaRepository) {
+        this.tareaRepository = tareaRepository;
+    }
 
     @Override
     public Tarea insert(Tarea tarea) {

@@ -1,7 +1,6 @@
 package com.study.Cursos.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.study.Usuarios.model.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,9 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "logros")

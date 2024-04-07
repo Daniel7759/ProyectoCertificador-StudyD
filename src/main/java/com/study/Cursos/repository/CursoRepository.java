@@ -9,9 +9,9 @@ import java.util.Collection;
 @Repository
 public interface CursoRepository extends JpaRepository<Curso,Long> {
 
-    public abstract Curso findByTitle(String title);
+    Curso findByTitle(String title);
 
-    public abstract Collection<Curso> findAllByOrderByFechaCreacionDesc();
+    Collection<Curso> findAllByOrderByFechaCreacionDesc();
 
-    public abstract Collection<Curso> findByMateriaMateriaId(Long materiaId);
+    Collection<Curso> findByMateriaMateriaId(Long materiaId);
 }

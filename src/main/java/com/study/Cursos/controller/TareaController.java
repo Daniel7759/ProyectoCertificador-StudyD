@@ -1,9 +1,7 @@
 package com.study.Cursos.controller;
 
-import com.study.Cursos.model.Pregunta;
 import com.study.Cursos.model.Tarea;
 import com.study.Cursos.service.TareaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "tareas")
 public class TareaController {
 
-    @Autowired
-    private TareaService tareaService;
+    private final TareaService tareaService;
+
+    public TareaController(TareaService tareaService) {
+        this.tareaService = tareaService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllTareas(){

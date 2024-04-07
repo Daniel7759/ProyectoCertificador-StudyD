@@ -6,8 +6,8 @@ import java.util.Collection;
 
 public interface PreguntaService {
 
-    public abstract Pregunta insert(Pregunta pregunta);
-    public abstract Pregunta findByPregunta(String pregunta);
-    public abstract Pregunta findById(Long preguntaId);
-    public abstract Collection<Pregunta> findAll();
+    Pregunta insert(Pregunta pregunta);
+    Pregunta findByPregunta(String pregunta);
+    Pregunta findById(Long preguntaId);
+    Collection<Pregunta> findAll();
 }

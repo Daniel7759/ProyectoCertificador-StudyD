@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PreguntaRepository extends JpaRepository<Pregunta, Long> {
 
-    public abstract Pregunta findByPregunta(String pregunta);
+    Pregunta findByPregunta(String pregunta);
 }

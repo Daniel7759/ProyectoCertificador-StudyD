@@ -4,7 +4,6 @@ import com.study.Cursos.model.Curso;
 import com.study.Cursos.model.EnumMateria;
 import com.study.Cursos.model.Materia;
 import com.study.Cursos.repository.MateriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,8 +12,11 @@ import java.util.Collection;
 @Service
 public class MateriaServiceImpl implements MateriaService{
 
-    @Autowired
-    private MateriaRepository materiaRepository;
+    private final MateriaRepository materiaRepository;
+
+    public MateriaServiceImpl(MateriaRepository materiaRepository) {
+        this.materiaRepository = materiaRepository;
+    }
 
     @Override
     public Materia insert(Materia materia) {

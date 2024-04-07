@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubtemaRepository extends JpaRepository<Subtema,Long> {
 
-    public abstract Subtema findByTitulo(String titulo);
+    Subtema findByTitulo(String titulo);
 }

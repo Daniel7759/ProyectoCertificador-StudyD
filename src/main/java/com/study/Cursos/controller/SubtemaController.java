@@ -1,9 +1,7 @@
 package com.study.Cursos.controller;
 
 import com.study.Cursos.model.Subtema;
-import com.study.Cursos.model.Tema;
 import com.study.Cursos.service.SubtemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "subtemas")
 public class SubtemaController {
 
-    @Autowired
-    private SubtemaService subtemaService;
+    private final SubtemaService subtemaService;
+
+    public SubtemaController(SubtemaService subtemaService) {
+        this.subtemaService = subtemaService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllSubtemas(){

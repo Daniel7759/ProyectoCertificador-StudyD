@@ -1,9 +1,7 @@
 package com.study.Cursos.controller;
 
 import com.study.Cursos.model.Logro;
-import com.study.Cursos.model.Tema;
 import com.study.Cursos.service.LogroService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.Collection;
 @RequestMapping(value = "logros")
 public class LogroController {
 
-    @Autowired
-    private LogroService logroService;
+    private final LogroService logroService;
+
+    public LogroController(LogroService logroService) {
+        this.logroService = logroService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllLogros(){
