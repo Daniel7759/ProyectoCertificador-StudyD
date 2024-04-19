@@ -67,20 +67,27 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
     }
 
     @Override
-    public CursoDesbloqueado update(Long cursoUnlockedId, Double notaExamen) {
-        CursoDesbloqueado cursoDesbloqueadoActual = cursoDesbloqueadoRepository.findById(cursoUnlockedId)
-                .orElseThrow(() -> new RuntimeException("El curso desbloqueado especificado no existe."));
+    @Transactional
+    public CursoDesbloqueado update(Long usertId, Long cursoId, Double notaExamen) {
+        CursoDesbloqueado cursoDesbloqueadoActual = cursoDesbloqueadoRepository.findByUsertIdAndCursoId(usertId, cursoId);
 
         cursoDesbloqueadoActual.setNotaExamen(notaExamen);
         if (notaExamen >= 13) {
             cursoDesbloqueadoActual.setEstadoCurso(EstadoCurso.FINALIZADO);
             cursoDesbloqueadoActual.setFechaFinalizado(LocalDate.now());
+            addBonusToExamen(usertId, cursoId);
             addLogroToUser(cursoDesbloqueadoActual.getUsertId(), cursoDesbloqueadoActual.getCursoId());
+            return cursoDesbloqueadoRepository.save(cursoDesbloqueadoActual);
         }else{
-            cursoDesbloqueadoActual.setEstadoCurso(EstadoCurso.ACTIVO);
+            // Si es menor a 13, quitar el curso de la lista de cursosDesbloqueados del usuario
+            User user = usuarioRepository.findById(usertId).orElse(null);
+            if (user != null) {
+                user.getCursosDesbloqueados().remove(cursoDesbloqueadoActual);
+                usuarioRepository.save(user);
+            }
+            // No devolver el curso, ya que ha sido eliminado
+            return null;
         }
-
-        return cursoDesbloqueadoRepository.save(cursoDesbloqueadoActual);
     }
 
     @Override
@@ -108,6 +115,15 @@ public class CursoDesbloqueadoServiceImpl implements CursoDesbloqueadoService {
                 .orElseThrow(() -> new RuntimeException("El curso especificado no existe."));
         Logro logro = curso.getLogro();
         usuario.getLogros().add(logro);
+        userService.updateStarsAndExperience(userId,logro.getStarsBonus(),logro.getXpBonus());
         usuarioRepository.save(usuario);
+    }
+
+    private void addBonusToExamen(Long userId, Long cursoId) {
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new RuntimeException("El curso especificado no existe."));
+        int estrellas = curso.getExamen().getStarsBonus();
+        double  experience = curso.getExamen().getXpBonus();
+        userService.updateStarsAndExperience(userId,estrellas,experience);
     }
 }

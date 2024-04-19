@@ -33,12 +33,10 @@ public class Logro {
 
     @NotNull(message = "El campo starsBonus es obligatorio")
     @PositiveOrZero(message = "El valor del bono de estrellas debe ser positivo o cero")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private int starsBonus;
 
     @NotNull(message = "El campo xpBonus es obligatorio")
     @PositiveOrZero(message = "El valor del bono de experiencia debe ser positivo o cero")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private double xpBonus;
 
     @OneToOne(fetch = FetchType.LAZY)

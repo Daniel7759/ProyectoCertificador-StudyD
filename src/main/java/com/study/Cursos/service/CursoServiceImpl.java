@@ -60,4 +60,14 @@ public class CursoServiceImpl implements CursoService{
     public Collection<Curso> findAllByFechaCreacionDesc() {
         return cursoRepository.findAllByOrderByFechaCreacionDesc();
     }
+
+    @Override
+    public Curso findNextCurso(Long cursoId) {
+        Curso nextCurso = cursoRepository.findByCursoAnteriorId(cursoId);
+        if (nextCurso != null) {
+            return nextCurso;
+        } else {
+            throw new RuntimeException("No hay un curso siguiente");
+        }
+    }
 }

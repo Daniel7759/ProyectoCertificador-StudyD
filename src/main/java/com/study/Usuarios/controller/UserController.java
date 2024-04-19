@@ -1,6 +1,7 @@
 package com.study.Usuarios.controller;
 
 import com.study.Cursos.model.Curso;
+import com.study.Usuarios.model.CursoFinalizadoDTO;
 import com.study.Usuarios.model.User;
 import com.study.Usuarios.model.UserResponseDTO;
 import com.study.Usuarios.service.UserService;
@@ -105,6 +106,16 @@ public class UserController {
         try {
             List<Curso> userCursos = userService.bucarCursosConDatos(userId);
             return new ResponseEntity<>(userCursos, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e,HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/cursosfinalizados/{userId}")
+    public ResponseEntity<?> getCursosFinalizadosDelUsuario(@PathVariable Long userId){
+        try {
+            List<CursoFinalizadoDTO> userCursosFinalizados = userService.findCursosFinalizados(userId);
+            return new ResponseEntity<>(userCursosFinalizados, HttpStatus.OK);
         }catch (Exception e){
             return new ResponseEntity<>(e,HttpStatus.NOT_FOUND);
         }

@@ -12,4 +12,5 @@ public interface CursoService {
     Collection<Curso> findAll();
     Collection<Curso> findAllByMateriaId(Long materiaId);
     Collection<Curso> findAllByFechaCreacionDesc();
+    Curso findNextCurso(Long cursoId);
 }

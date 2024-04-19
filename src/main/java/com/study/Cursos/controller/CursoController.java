@@ -70,8 +70,8 @@ public class CursoController {
             //mandamos la notificacion a la app
             String titulo = "Nuevo Curso, miralo en Novedades";
             String cuerpo = "¡Nuevo curso disponible: " + cursoDB.getTitle() + "!";
-            String image = "https://i.pinimg.com/236x/ac/15/a6/ac15a619b4ff84341dab0c1b93b6556b.jpg";
-            NotificationMessage notificationMessage = new NotificationMessage(titulo,cuerpo,image);
+            String image = curso.getImageUrl();
+            NotificationMessage notificationMessage = new NotificationMessage(null,titulo,cuerpo,image,null);
             firebaseMessagingService.sendNotifyByTopic(notificationMessage);
 
             return new ResponseEntity<>(cursoDB,HttpStatus.CREATED);

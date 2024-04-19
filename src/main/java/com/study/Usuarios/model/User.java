@@ -79,4 +79,7 @@ public class User {
     @JoinTable(name = "user_logro", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "logro_id"))
     private Set<Logro> logros = new HashSet<>();
 
+    @OneToMany(mappedBy = "usertId", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<TokenFCM> tokens = new HashSet<>();
+
 }

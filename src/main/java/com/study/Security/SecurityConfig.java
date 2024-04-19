@@ -38,6 +38,7 @@ public class SecurityConfig {
                     authz.requestMatchers("/logros/**").permitAll();
                     authz.requestMatchers("/preguntas/**").permitAll();
                     authz.requestMatchers("/examenes/**").permitAll();
+                    authz.requestMatchers("/tokens/**").permitAll();
                     authz.anyRequest().authenticated();
                 })
 

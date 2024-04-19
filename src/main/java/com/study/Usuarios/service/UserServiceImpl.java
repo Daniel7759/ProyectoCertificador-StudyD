@@ -10,6 +10,7 @@ import com.study.Niveles.repository.LevelRepository;
 import com.study.Usuarios.model.*;
 import com.study.Usuarios.repository.CursoDesbloqueadoRepository;
 import com.study.Usuarios.repository.RoleRepository;
+import com.study.Usuarios.repository.TokenFCMRepository;
 import com.study.Usuarios.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,13 +33,16 @@ public class UserServiceImpl implements UserService{
 
     private final CursoService cursoService;
 
-    public UserServiceImpl(UserRepository userRepository, LevelRepository levelRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, CursoDesbloqueadoRepository cursoDesbloqueadoRepository, CursoService cursoService) {
+    private final TokenFCMRepository tokenFCMRepository;
+
+    public UserServiceImpl(UserRepository userRepository, LevelRepository levelRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, CursoDesbloqueadoRepository cursoDesbloqueadoRepository, CursoService cursoService, TokenFCMRepository tokenFCMRepository) {
         this.userRepository = userRepository;
         this.levelRepository = levelRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.cursoDesbloqueadoRepository = cursoDesbloqueadoRepository;
         this.cursoService = cursoService;
+        this.tokenFCMRepository = tokenFCMRepository;
     }
 
     @Override
@@ -64,6 +68,29 @@ public class UserServiceImpl implements UserService{
             return userRepository.save(existingUser);
         } else {
             throw new RuntimeException("La contraseña actual no coincide");
+        }
+    }
+
+    @Override
+    public User setTokenFCMToUser(TokenFCM token) {
+        User userDB = userRepository.findById(token.getUsertId())
+                .orElseThrow(() -> new RuntimeException("El usuario especificado no existe."));
+        if (userDB != null && !token.getToken().isEmpty()) {
+            tokenFCMRepository.save(token); // Guarda el token en la base de datos
+            userDB.getTokens().add(token);
+            return userRepository.save(userDB);
+        } else {
+            throw new RuntimeException("El token no puede estar vacío");
+        }
+    }
+
+    @Override
+    public void deleteTokenFCMToUser(Long userId, String token) {
+        TokenFCM tokenUser = tokenFCMRepository.findByUsertIdAndToken(userId, token);
+        if(tokenUser!=null){
+            tokenFCMRepository.delete(tokenUser);
+        }else {
+            throw new RuntimeException("El token no existe");
         }
     }
 
@@ -155,12 +182,48 @@ public class UserServiceImpl implements UserService{
             for (CursoDesbloqueado cursoDesbloqueado : user.getCursosDesbloqueados()) {
                 // Obtener el curso por su ID
                 Curso curso = cursoService.findById(cursoDesbloqueado.getCursoId());
-                if (curso != null) {
+                if (curso != null &&  cursoDesbloqueado.getEstadoCurso().equals(EstadoCurso.ACTIVO)) {
                     cursosDesbloqueadosDatos.add(curso);
                 }
             }
         }
         return cursosDesbloqueadosDatos;
+    }
+
+    @Override
+    public List<CursoFinalizadoDTO> findCursosFinalizados(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("El usuario especificado no existe."));
+        if (user!=null){
+            List<CursoDesbloqueado> cursosDesbloqueados = cursoDesbloqueadoRepository.findByUsertId(userId);
+            if (!cursosDesbloqueados.isEmpty()) {
+                List<CursoFinalizadoDTO> cursosFinalizados = new ArrayList<>();
+                for (CursoDesbloqueado cursoDesbloqueado : cursosDesbloqueados) {
+                    Curso curso = cursoService.findById(cursoDesbloqueado.getCursoId());
+                    if (curso != null && cursoDesbloqueado.getEstadoCurso().equals(EstadoCurso.FINALIZADO)) {
+                        CursoFinalizadoDTO cursoFinalizadoDTO = getCursoFinalizadoDTO(cursoDesbloqueado, user, curso);
+                        cursosFinalizados.add(cursoFinalizadoDTO);
+                    }
+                }
+                return cursosFinalizados;
+            }
+        }
+        return null;
+    }
+
+    private static CursoFinalizadoDTO getCursoFinalizadoDTO(CursoDesbloqueado cursoDesbloqueado, User user, Curso curso) {
+        CursoFinalizadoDTO cursoFinalizadoDTO = new CursoFinalizadoDTO();
+        cursoFinalizadoDTO.setCursoUnlockedId(cursoDesbloqueado.getCursoUnlockedId());
+        cursoFinalizadoDTO.setUsertId(user.getUsertId());
+        cursoFinalizadoDTO.setNombreCompleto(user.getFirstname() + " " + user.getLastname());
+        cursoFinalizadoDTO.setCursoId(curso.getCursoId());
+        cursoFinalizadoDTO.setNombreCurso(curso.getTitle());
+        cursoFinalizadoDTO.setImagenCurso(curso.getImageUrl());
+        cursoFinalizadoDTO.setFechaDesbloqueo(cursoDesbloqueado.getFechaDesbloqueo());
+        cursoFinalizadoDTO.setFechaFinalizado(cursoDesbloqueado.getFechaFinalizado());
+        cursoFinalizadoDTO.setNotaExamen(cursoDesbloqueado.getNotaExamen());
+        cursoFinalizadoDTO.setEstadoCurso(cursoDesbloqueado.getEstadoCurso());
+        return cursoFinalizadoDTO;
     }
 
     private UserResponseDTO mapUserToUserResponseDTO(User user, Level level) {

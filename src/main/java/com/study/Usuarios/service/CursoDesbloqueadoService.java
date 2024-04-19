@@ -8,7 +8,7 @@ public interface CursoDesbloqueadoService {
 
     CursoDesbloqueado insert(CursoDesbloqueado cursoDesbloqueado);
 
-    CursoDesbloqueado update(Long cursoUnlockedId, Double notaExamen);
+    CursoDesbloqueado update(Long usertId, Long cursoId, Double notaExamen);
 
     CursoDesbloqueado findById(Long cursoUnlockedId);
 

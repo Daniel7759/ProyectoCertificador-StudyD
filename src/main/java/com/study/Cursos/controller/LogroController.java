@@ -39,7 +39,7 @@ public class LogroController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createTema(@RequestBody Logro logro){
+    public ResponseEntity<?> createLogro(@RequestBody Logro logro){
         try{
             Logro existingLogro=logroService.findByNombreLogro(logro.getNombreLogro());
 

@@ -11,6 +11,8 @@ public interface CursoRepository extends JpaRepository<Curso,Long> {
 
     Curso findByTitle(String title);
 
+    Curso findByCursoAnteriorId(Long cursoAnteriorId);
+
     Collection<Curso> findAllByOrderByFechaCreacionDesc();
 
     Collection<Curso> findByMateriaMateriaId(Long materiaId);
